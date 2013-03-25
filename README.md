@@ -86,3 +86,8 @@ routes:
 All static assets such as css and png files are to be in the `static/` 
 directory. Any url prefixed with `/static/` will directly serve these files.
 
+## Future changes
+
+Both the markuphive.com service and this SDK are in beta, which means the 
+service infrastructure and SDK can change before becoming production ready 
+and stable.
