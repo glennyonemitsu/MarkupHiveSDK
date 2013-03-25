@@ -1,6 +1,15 @@
 # Application Configuration File
 
 ####################
+# Application Name
+####################
+# This is the application name. If you log into the manager at
+# foobar.manager.markuphive.com and your app lives at
+# foobar.app.markuphive.com then your application name is "foobar"
+
+#application_name: foobar
+
+####################
 # API Keys
 ####################
 # API keys are required to upload to the markuphive.com hosting platform.
