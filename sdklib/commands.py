@@ -75,6 +75,9 @@ def run_server(args):
         logger.error('Error reading %s' % yaml_path)
         sys.exit(2)
 
+    # if app.yaml wasn't touched, to preview something
+    if config is None:
+        config = {}
     if 'routes' not in config:
         logger.error('Routes not specified in app.yaml')
         sys.exit(3)
