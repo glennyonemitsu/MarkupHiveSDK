@@ -1,0 +1,49 @@
+!!! 5
+html
+    title An example markuphive site
+    meta(name="viewport", content="width=device-width, initial-scale=1.0")
+    link(href="/static/css/bootstrap.min.css", rel="stylesheet", media="screen")
+
+    .container
+        .row
+            h1 Welcome to the default Markup Hive site
+            p
+                | This is the default welcome site served by the SDK when 
+                | no app is specified, or when the routes in app.yaml is
+                | empty.
+            h2 To begin building your site
+            ol
+                li
+                    | If you haven't, build a skeleton site with 
+                    code markuphive create --path your_app
+                li
+                    | Change your app.yaml and add routes so the app knows 
+                    | which templates to use for which URLs
+                li
+                    | Preview your site with 
+                    code markuphive run_server --path your_app
+                li
+                    | Like what you see? Upload with
+                    code markuphive upload --path your_app
+
+            h2 Additional information
+            ul
+                li
+                    | To learn the Jade templating language, visit the 
+                    | tutorial site
+                    a(href='http://www.learnjade.com/') learnjade.com
+                    | .
+                li
+                    | If you have an account on 
+                    a(href='http://www.markuphive.com') markuphive.com
+                    | , you can log into the manager to get an API key for 
+                    | your app.yaml file. This allows the SDK to properly
+                    | upload your app.
+                li
+                    | If your account name (not the username) is "example" 
+                    | then you can log into the manager backend at
+                    a(href='https://example.manager.markuphive.com')
+                        | example.manager.markuphive.com
+
+    script(src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js")
+    script(src="/static/js/bootstrap.min.js")

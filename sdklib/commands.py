@@ -18,7 +18,7 @@ from jinja2 import Environment, FileSystemLoader
 import requests
 import yaml
 
-from sdklib import API_ENDPOINT, logger, skeleton_path
+from sdklib import API_ENDPOINT, logger, routeless_path, skeleton_path
 
 
 def create(args):
@@ -76,11 +76,16 @@ def run_server(args):
         sys.exit(2)
 
     # if app.yaml wasn't touched, to preview something
-    if config is None:
-        config = {}
-    if 'routes' not in config:
-        logger.error('Routes not specified in app.yaml')
-        sys.exit(3)
+    if config is None or 'routes' not in config:
+        logger.info('No routes found in app.yaml, loading default welcome site')
+        yaml_path = path.join(routeless_path, 'app.yaml')
+        templates_path = path.join(routeless_path, 'templates')
+        static_path = path.join(routeless_path, 'static')
+        try:
+            config = yaml.load(open(yaml_path, 'r').read())
+        except IOError:
+            logger.error('Error reading %s for default welcome site' % yaml_path)
+            sys.exit(2)
 
     jinja_env = Environment(
         loader=FileSystemLoader(templates_path),
