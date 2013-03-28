@@ -1,8 +1,9 @@
 #! /usr/bin/env python
 
 import argparse 
+import logging
 
-from sdklib import commands
+from sdklib import logger, commands
 
 
 parser = argparse.ArgumentParser(description='SDK')
@@ -24,8 +25,12 @@ server_parser.set_defaults(callback=commands.run_server)
 
 upload_parser = sub_parsers.add_parser('upload', help='Upload a new project at specified directory to the hosting account')
 upload_parser.add_argument('-p', '--path', dest='path', metavar='PATH')
+upload_parser.add_argument(
+    '-d', '--debug', action='store_true', help='Debug output'
+)
 upload_parser.set_defaults(callback=commands.upload)
 
 args = parser.parse_args()
+if getattr(args, 'debug', False):
+    logger.setLevel(logging.DEBUG)
 args.callback(args)
-
