@@ -193,10 +193,23 @@ def upload(args):
             'Response headers: %s\n'
             'Response body: %s' % (res.status_code, res.headers, res.content)
         )
-        logger.info(
-            'Upload complete. Your site is available at '
-            'http://%s.app.markuphive.com/' % yaml_data['application_name']
-        )
+
+        try:
+            response_data = json.loads(res.content)
+        except:
+            response_data = {'success': True}
+
+        if response_data['success']:
+            logger.info(
+                'Upload complete. Your site is available at '
+                'http://%s.app.markuphive.com/' % yaml_data['application_name']
+            )
+        else:
+            logger.info('Upload failed.')
+            if 'error-message' in response_data:
+                logger.info(
+                    'Error message: %s' % response_data['error-message']
+                )
     except urllib2.HTTPError, e:
         logger.error('API call returned a 404. Please check api '
                      'credentials in the app.yaml file.')
