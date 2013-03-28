@@ -188,6 +188,11 @@ def upload(args):
     try:
         logger.info('Uploading')
         res = _upload_file(yaml_data, payload_json)
+        logger.debug(
+            'Response code: %s\n'
+            'Response headers: %s\n'
+            'Response body: %s' % (res.status_code, res.headers, res.content)
+        )
         logger.info(
             'Upload complete. Your site is available at '
             'http://%s.app.markuphive.com/' % yaml_data['application_name']
