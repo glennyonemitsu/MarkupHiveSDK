@@ -17,5 +17,5 @@ logger.setLevel(logging.INFO)
 # possible override for local development
 API_ENDPOINT = os.environ.get(
     'MARKUPHIVE_API_ENDPOINT', 
-    'https://api.markuphive.com'
+    'http://api.markuphive.com'
 )
