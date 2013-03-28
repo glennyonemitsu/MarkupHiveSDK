@@ -188,7 +188,10 @@ def upload(args):
     try:
         logger.info('Uploading')
         res = _upload_file(yaml_data, payload_json)
-        logger.info('Upload complete')
+        logger.info(
+            'Upload complete. Your site is available at '
+            'http://%s.app.markuphive.com/' % yaml_data['application_name']
+        )
     except urllib2.HTTPError, e:
         logger.error('API call returned a 404. Please check api '
                      'credentials in the app.yaml file.')
