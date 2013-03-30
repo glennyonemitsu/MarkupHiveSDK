@@ -243,13 +243,14 @@ def _date_header():
 
 def _upload_file(app_data, payload):
     name = app_data['application_name']
-    endpoint = '%s/application/%s/' % (API_ENDPOINT, name)
+    endpoint = '%s/api/application/%s/' % (API_ENDPOINT, name)
+    endpoint = endpoint % app_data['application_name']
     access_key = app_data['api_access_key']
     secret_key = app_data['api_secret_key']
     api_verb = 'PUT'
     api_content = payload
     api_date = _date_header()
-    api_uri = '/application/%s/' % name
+    api_uri = '/api/application/%s/' % name
     api_signature = _api_signature(
         api_verb, api_content, api_date, api_uri, secret_key
     )
@@ -257,7 +258,7 @@ def _upload_file(app_data, payload):
         'Date': api_date,
         'X-Authentication': '%s:%s' % (access_key, api_signature)
     }
-    res = requests.put(endpoint, data=payload, headers=headers)
+    res = requests.put(endpoint, data=payload, headers=headers, verify=True)
     return res
 
 def _hash(content):
