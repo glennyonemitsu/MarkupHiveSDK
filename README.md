@@ -92,10 +92,16 @@ routes:
     template: not-found.jade
 ```
 
+### Static assets (images, css, javascript)
+
 All static assets such as css and png files are to be in the `static/` 
 directory. Any url prefixed with `/static/` will directly serve these files.
 
+#### Favicons
 
+Favicon files are also supported. Simply place the favicon.ico file in the 
+`static/` directory. Requests for `example.com/favicon.ico` will look into 
+this directory for the file, even though `/static/` is not in the url.
 
 ## Future changes
 
