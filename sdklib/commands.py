@@ -108,6 +108,9 @@ def run_server(args):
     def _dispatch_static(filename):
         return send_from_directory(static_path, filename)
 
+    def _dispatch_favicon():
+        return _dispatch_static('favicon.ico')
+
     def _dispatch_not_found(kwargs):
         '''
         creates the error handling function to assign to the flask object
@@ -158,6 +161,7 @@ def run_server(args):
             )
             i += 1
     app.add_url_rule('/static/<path:filename>', 'static', _dispatch_static)
+    app.add_url_rule('/favicon.ico', 'favicon', _dispatch_favicon)
 
     host = ''.join(args.address.split(':')[:-1])
     port = int(args.address.split(':')[-1])
