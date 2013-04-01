@@ -61,6 +61,13 @@ the `data/` directory that are either json or yaml format. The `data/ `
 directory does not need to be specified. Each succeeding data file with 
 matching keys will overwrite keys in the preceeding file. 
 
+#### 404 handling
+
+You can also specify a rule as `404`. As you might expect, this will make 
+all requests that do not match a normal route rule to be served by that 
+special 404 route rule. Your 404 handler is also specified with a template 
+and any other data files you want to associate with it.
+
 Due to technical limitations, variables from route rules such as 
 `member_name` above will be overwritten by any data files with the same 
 key.
@@ -81,10 +88,14 @@ routes:
   - rule: /portfolio/
     template: portfolio.jade
     data: [projects.json, clients.yaml]
+  - rule: 404
+    template: not-found.jade
 ```
 
 All static assets such as css and png files are to be in the `static/` 
 directory. Any url prefixed with `/static/` will directly serve these files.
+
+
 
 ## Future changes
 
