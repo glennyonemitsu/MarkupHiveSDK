@@ -108,6 +108,15 @@ def run_server(args):
     def _dispatch_static(filename):
         return send_from_directory(static_path, filename)
 
+    def _dispatch_not_found(kwargs):
+        '''
+        creates the error handling function to assign to the flask object
+        with flask.register_error_handler
+        '''
+        def not_found_handler(error):
+            return _dispatch_rule(**kwargs), 404
+        return not_found_handler
+
     def _compile_defaults(files, app_path):
         '''creates the default content dict to send to the jade template'''
         if not isinstance(files, list):
@@ -132,17 +141,22 @@ def run_server(args):
     i = 0
     for route in config['routes']:
         rule = route['rule']
-        endpoint = 'dispatch_%s' % str(i)
         defaults = {}
         defaults['__sdk_template__'] = route['template']
         defaults['__sdk_content__'] = route.get('content', [])
-        app.add_url_rule(
-            rule,
-            endpoint,
-            _dispatch_rule,
-            defaults=defaults
-        )
-        i += 1
+        if rule == 404:
+            # 404
+            app.register_error_handler(404, _dispatch_not_found(defaults))
+        else:
+            # adding rules with actual uri patterns
+            endpoint = 'dispatch_%s' % str(i)
+            app.add_url_rule(
+                rule,
+                endpoint,
+                _dispatch_rule,
+                defaults=defaults
+            )
+            i += 1
     app.add_url_rule('/static/<path:filename>', 'static', _dispatch_static)
 
     host = ''.join(args.address.split(':')[:-1])

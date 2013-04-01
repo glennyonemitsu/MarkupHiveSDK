@@ -37,3 +37,7 @@
 #  - rule: /portfolio/
 #    template: portfolio.jade
 #    data: [projects.json, clients.yaml]
+
+# this rule will serve all 404 pages
+#  - rule: 404
+#    template: not-found.jade
