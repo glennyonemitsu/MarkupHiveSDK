@@ -13,9 +13,10 @@ import sys
 import urllib
 import urllib2
 
-from flask import Flask, request, url_for, send_from_directory
+from flask import Flask, make_response, request, url_for, send_from_directory
 from jinja2 import Environment, FileSystemLoader
 import requests
+import scss
 import yaml
 
 from sdklib import API_ENDPOINT, logger, routeless_path, skeleton_path
@@ -106,7 +107,18 @@ def run_server(args):
         return template.render(**kwargs)
 
     def _dispatch_static(filename):
-        return send_from_directory(static_path, filename)
+        # scss support
+        if filename.startswith('css/') and filename.endswith('.scss'):
+            scss_file = path.join(static_path, filename)
+            _scss = scss.Scss()
+            css = _scss.compile(scss_file=scss_file)
+            res = make_response()
+            res.data = css
+            res.mimetype = 'text/css'
+            return res
+        # everything else, straight served
+        else:
+            return send_from_directory(static_path, filename)
 
     def _dispatch_favicon():
         return _dispatch_static('favicon.ico')
