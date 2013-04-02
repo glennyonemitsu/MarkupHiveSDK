@@ -261,14 +261,13 @@ def _date_header():
 
 def _upload_file(app_data, payload):
     name = app_data['application_name']
-    endpoint = '%s/api/application/%s/' % (API_ENDPOINT, name)
-    endpoint = endpoint % app_data['application_name']
+    endpoint = '%s/v0/application/%s/' % (API_ENDPOINT, name)
     access_key = app_data['api_access_key']
     secret_key = app_data['api_secret_key']
     api_verb = 'PUT'
     api_content = payload
     api_date = _date_header()
-    api_uri = '/api/application/%s/' % name
+    api_uri = '/v0/application/%s/' % name
     api_signature = _api_signature(
         api_verb, api_content, api_date, api_uri, secret_key
     )
