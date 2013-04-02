@@ -97,6 +97,25 @@ routes:
 All static assets such as css and png files are to be in the `static/` 
 directory. Any url prefixed with `/static/` will directly serve these files.
 
+#### SCSS "Sassy CSS"
+
+SCSS is a superset of CSS3 that the SDK and hosting platform will 
+automatically convert back into native css. Simply add any file with the 
+`.scss` file extension in the `static/css/` folder. In your templates you 
+simply reference the `.scss` filename directly. You do not need to 
+"translate" the filename to a `.css` extension.
+
+For example, if your scss file is in `static/css/style.scss` you can use 
+the link tag as 
+`link(rel='stylesheet', media='screen', href='/static/css/style.scss')`
+
+Currently the `@import` directive is not supported.
+
+SASS is the older version of a css preprocessor syntax, not to be confused 
+with SCSS. Currently SASS is not supported.
+
+[Learn more about the SCSS syntax at sass-lang.com](http://sass-lang.com/).
+
 #### Favicons
 
 Favicon files are also supported. Simply place the favicon.ico file in the 
