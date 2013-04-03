@@ -106,8 +106,11 @@ simply reference the `.scss` filename directly. You do not need to
 "translate" the filename to a `.css` extension.
 
 For example, if your scss file is in `static/css/style.scss` you can use 
-the link tag as 
-`link(rel='stylesheet', media='screen', href='/static/css/style.scss')`
+the link tag as:
+
+```
+link(rel='stylesheet', media='screen', href='/static/css/style.scss')
+```
 
 Currently the `@import` directive is not supported.
 
