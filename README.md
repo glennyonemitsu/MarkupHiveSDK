@@ -124,7 +124,9 @@ hosting platform automatically converts `.coffeescript` files placed
 inside the `static/js/` directory. Like with scss, you also reference the 
 file with the `.coffeescript` extension like so:
 
-```script(src='/static/js/my-script.coffeescript')```
+```
+script(src='/static/js/my-script.coffeescript')
+```
 
 #### Favicons
 
