@@ -116,6 +116,16 @@ with SCSS. Currently SASS is not supported.
 
 [Learn more about the SCSS syntax at sass-lang.com](http://sass-lang.com/).
 
+#### Coffeescript files
+
+[Coffeescript](http://coffeescript.org/) is a neat and well organized 
+language that compiles into properly linting javascript code. The SDK and 
+hosting platform automatically converts `.coffeescript` files placed 
+inside the `static/js/` directory. Like with scss, you also reference the 
+file with the `.coffeescript` extension like so:
+
+```script(src='/static/js/my-script.coffeescript')```
+
 #### Favicons
 
 Favicon files are also supported. Simply place the favicon.ico file in the 
