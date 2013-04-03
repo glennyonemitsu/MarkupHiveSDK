@@ -119,6 +119,15 @@ def run_server(args):
             res.mimetype = 'text/css'
             return res
 
+        # less support
+        if filename.startswith('css/') and filename.endswith('.less'):
+            less_file = path.join(static_path, filename)
+            css = _compile_less(less_file)
+            res = make_response()
+            res.data = css
+            res.mimetype = 'text/css'
+            return res
+
         # coffeescript support
         elif filename.startswith('js/') and filename.endswith('.coffee'):
             cs_file = path.join(static_path, filename)
@@ -308,13 +317,25 @@ def _hash(content):
     return h
 
 def _compile_coffeescript(filename):
+    return _node_command(['coffee-script', 'bin', 'coffee'], ['--print', filename])
+
+def _compile_less(filename):
+    return _node_command(['less', 'bin', 'lessc'], [filename])
+
+def _node_command(command, args):
+    '''
+    convenience method to call node and additional node commands installed
+    from npm such as coffeescript or less.
+
+    command is the relative path list to the command
+    args are the additional parameters to pass after the command
+    '''
     # these are 64bit binaries
     if sys.platform.startswith('linux'):
         node_name = 'node-linux'
     elif sys.platform.startswith('darwin'):
         node_name = 'node-darwin'
-    cmd_node = path.join(node_path, node_name)
-    cmd_coffee = path.join(
-        node_path, 'coffee-script', 'bin', 'coffee')
-    cmd_args = [cmd_node, cmd_coffee, '--print', filename]
+    node = path.join(node_path, node_name)
+    command = path.join(node_path, *command)
+    cmd_args = [node, command] + args
     return subprocess.check_output(cmd_args)
