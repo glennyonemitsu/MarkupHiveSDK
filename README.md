@@ -123,12 +123,12 @@ with SCSS. Currently SASS is not supported.
 
 [Coffeescript](http://coffeescript.org/) is a neat and well organized 
 language that compiles into properly linting javascript code. The SDK and 
-hosting platform automatically converts `.coffeescript` files placed 
-inside the `static/js/` directory. Like with scss, you also reference the 
-file with the `.coffeescript` extension like so:
+hosting platform automatically converts `.coffee` files placed inside the 
+`static/js/` directory. Like with scss, you also reference the file with 
+the `.coffee` extension like so:
 
 ```
-script(src='/static/js/my-script.coffeescript')
+script(src='/static/js/my-script.coffee')
 ```
 
 #### Favicons

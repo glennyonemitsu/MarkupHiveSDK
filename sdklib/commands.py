@@ -120,7 +120,7 @@ def run_server(args):
             return res
 
         # coffeescript support
-        elif filename.startswith('js/') and filename.endswith('.coffeescript'):
+        elif filename.startswith('js/') and filename.endswith('.coffee'):
             cs_file = path.join(static_path, filename)
             cs_data = _compile_coffeescript(cs_file)
             res = make_response()
