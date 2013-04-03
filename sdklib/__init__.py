@@ -6,6 +6,7 @@ import sys
 
 path_name = os.path.dirname(sys.argv[0])
 root_path = os.path.abspath(path_name)
+node_path = os.path.join(root_path, 'node')
 skeleton_path = os.path.join(root_path, 'skeletons')
 routeless_path = os.path.join(root_path, 'sdklib', 'routeless')
 

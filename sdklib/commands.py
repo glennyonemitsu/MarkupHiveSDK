@@ -6,9 +6,11 @@ import hmac
 import json
 import os
 import os.path as path
+import platform
 import shutil
 import stat
 import StringIO
+import subprocess
 import sys
 import urllib
 import urllib2
@@ -19,7 +21,7 @@ import requests
 import scss
 import yaml
 
-from sdklib import API_ENDPOINT, logger, routeless_path, skeleton_path
+from sdklib import API_ENDPOINT, logger, node_path, routeless_path, skeleton_path
 
 
 def create(args):
@@ -116,6 +118,16 @@ def run_server(args):
             res.data = css
             res.mimetype = 'text/css'
             return res
+
+        # coffeescript support
+        elif filename.startswith('js/') and filename.endswith('.coffeescript'):
+            cs_file = path.join(static_path, filename)
+            cs_data = _compile_coffeescript(cs_file)
+            res = make_response()
+            res.data = cs_data
+            res.mimetype = 'application/javascript'
+            return res
+
         # everything else, straight served
         else:
             return send_from_directory(static_path, filename)
@@ -294,3 +306,15 @@ def _hash(content):
     h = hashlib.sha1()
     h.update(content)
     return h
+
+def _compile_coffeescript(filename):
+    # these are 64bit binaries
+    if sys.platform.startswith('linux'):
+        node_name = 'node-linux'
+    elif sys.platform.startswith('darwin'):
+        node_name = 'node-darwin'
+    cmd_node = path.join(node_path, node_name)
+    cmd_coffee = path.join(
+        node_path, 'coffee-script', 'bin', 'coffee')
+    cmd_args = [cmd_node, cmd_coffee, '--print', filename]
+    return subprocess.check_output(cmd_args)
