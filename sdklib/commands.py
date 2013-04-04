@@ -238,7 +238,7 @@ def upload(args):
 
     try:
         logger.info('Uploading')
-        res = _upload_file(yaml_data, payload_json, verify_ssl=args.verify_ssl)
+        res = _upload_file(yaml_data, payload_json)
         logger.debug(
             'Response code: %s\n'
             'Response headers: %s\n'
