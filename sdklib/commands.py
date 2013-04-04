@@ -21,7 +21,7 @@ import requests
 import scss
 import yaml
 
-from sdklib import API_ENDPOINT, logger, node_path, routeless_path, skeleton_path
+from sdklib import API_ENDPOINT, logger, node_path, routeless_path, root_path, skeleton_path
 
 
 def create(args):
@@ -238,7 +238,7 @@ def upload(args):
 
     try:
         logger.info('Uploading')
-        res = _upload_file(yaml_data, payload_json)
+        res = _upload_file(yaml_data, payload_json, verify_ssl=args.verify_ssl)
         logger.debug(
             'Response code: %s\n'
             'Response headers: %s\n'
@@ -292,7 +292,7 @@ def _date_header():
     header = dt.strftime('%a, %d %b %y %H:%M:%S GMT')
     return header
 
-def _upload_file(app_data, payload):
+def _upload_file(app_data, payload, verify_ssl=False):
     name = app_data['application_name']
     endpoint = '%s/v0/application/%s/' % (API_ENDPOINT, name)
     access_key = app_data['api_access_key']
@@ -308,7 +308,10 @@ def _upload_file(app_data, payload):
         'Date': api_date,
         'X-Authentication': '%s:%s' % (access_key, api_signature)
     }
-    res = requests.put(endpoint, data=payload, headers=headers, verify=True)
+    # verify is false, but just trust for now. Seems like there is some TLS SNI bug
+    # https://github.com/kennethreitz/requests/issues/1124
+    cert_file = path.join(root_path, 'requests', 'cacert.pem')
+    res = requests.put(endpoint, data=payload, headers=headers, verify=verify_ssl)
     return res
 
 def _hash(content):
