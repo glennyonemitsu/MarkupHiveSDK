@@ -28,9 +28,6 @@ upload_parser.add_argument('-p', '--path', dest='path', metavar='PATH')
 upload_parser.add_argument(
     '-d', '--debug', action='store_true', help='Debug output'
 )
-upload_parser.add_argument(
-    '-s', '--verify-ssl', action='store_true', dest='verify_ssl', help='Force SSL verification'
-)
 upload_parser.set_defaults(callback=commands.upload)
 
 args = parser.parse_args()

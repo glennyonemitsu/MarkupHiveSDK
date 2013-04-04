@@ -292,7 +292,7 @@ def _date_header():
     header = dt.strftime('%a, %d %b %y %H:%M:%S GMT')
     return header
 
-def _upload_file(app_data, payload, verify_ssl=False):
+def _upload_file(app_data, payload):
     name = app_data['application_name']
     endpoint = '%s/v0/application/%s/' % (API_ENDPOINT, name)
     access_key = app_data['api_access_key']
@@ -308,10 +308,7 @@ def _upload_file(app_data, payload, verify_ssl=False):
         'Date': api_date,
         'X-Authentication': '%s:%s' % (access_key, api_signature)
     }
-    # verify is false, but just trust for now. Seems like there is some TLS SNI bug
-    # https://github.com/kennethreitz/requests/issues/1124
-    cert_file = path.join(root_path, 'requests', 'cacert.pem')
-    res = requests.put(endpoint, data=payload, headers=headers, verify=verify_ssl)
+    res = requests.put(endpoint, data=payload, headers=headers)
     return res
 
 def _hash(content):
