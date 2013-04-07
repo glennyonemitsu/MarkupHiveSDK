@@ -17,6 +17,8 @@ import urllib2
 
 from flask import Flask, make_response, request, url_for, send_from_directory
 from jinja2 import Environment, FileSystemLoader
+import markdown
+import pyjade
 import requests
 import scss
 import yaml
@@ -98,15 +100,25 @@ def run_server(args):
         for k, v in kwargs.iteritems():
             if isinstance(v, unicode):
                 kwargs[k] = str(v)
-        template = jinja_env.get_template(kwargs['__sdk_template__'])
-        content = _compile_defaults(kwargs['__sdk_content__'], app_path)
-        for k in content:
-            kwargs.setdefault(k, content[k])
-        kwargs['REQ'] = request
-        kwargs['GET'] = request.args
-        kwargs['POST'] = request.form
-        kwargs['COOKIES'] = request.cookies
-        return template.render(**kwargs)
+        template_name = kwargs['__sdk_template__']
+
+        # markdown
+        if template_name.endswith('.md'):
+            template_name = path.join(templates_path, template_name)
+            with open(template_name, 'r') as th:
+                return markdown.markdown(th.read())
+
+        # everything else through jinja2
+        else:
+            template = jinja_env.get_template(template_name)
+            content = _compile_defaults(kwargs['__sdk_content__'], app_path)
+            for k in content:
+                kwargs.setdefault(k, content[k])
+            kwargs['REQ'] = request
+            kwargs['GET'] = request.args
+            kwargs['POST'] = request.form
+            kwargs['COOKIES'] = request.cookies
+            return template.render(**kwargs)
 
     def _dispatch_static(filename):
         # scss support
@@ -339,3 +351,8 @@ def _node_command(command, args):
     command = path.join(node_path, *command)
     cmd_args = [node, command] + args
     return subprocess.check_output(cmd_args)
+
+
+@pyjade.register_filter('markdown')
+def _filter_markdown(text, ast):
+    return markdown.markdown(text)
