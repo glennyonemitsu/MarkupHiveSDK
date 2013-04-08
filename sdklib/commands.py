@@ -12,6 +12,7 @@ import stat
 import StringIO
 import subprocess
 import sys
+import tempfile
 import urllib
 import urllib2
 
@@ -350,7 +351,10 @@ def _node_command(command, args):
     node = path.join(node_path, node_name)
     command = path.join(node_path, *command)
     cmd_args = [node, command] + args
-    return subprocess.check_output(cmd_args)
+    output = tempfile.TemporaryFile()
+    subprocess.call(cmd_args, stdout=output)
+    output.seek(0)
+    return output.read()
 
 
 @pyjade.register_filter('markdown')
