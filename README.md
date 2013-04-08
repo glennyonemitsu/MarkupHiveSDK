@@ -1,5 +1,8 @@
 # Markup Hive SDK
 
+For full docs including the SDK usage and the hosting service, refer to the 
+[Markup Hive Docs](https://www.markuphive.com/docs/).
+
 This is an SDK for the markuphive.com hosting platform. This tool is 
 intended for developing web applications for that service.
 
@@ -130,6 +133,12 @@ the `.coffee` extension like so:
 ```
 script(src='/static/js/my-script.coffee')
 ```
+
+#### Other Languages Supported
+
+For sake of not repeating in this readme and the 
+[Markup Hive Docs](https://www.markuphive.com/docs/), these other formats are
+supported: Less and Markdown.
 
 #### Favicons
 
