@@ -132,8 +132,17 @@ def run_server(args):
             res.mimetype = 'text/css'
             return res
 
+        # stylus support
+        elif filename.startswith('css/') and filename.endswith('.styl'):
+            stylus_file = path.join(static_path, filename)
+            css = _compile_stylus(stylus_file)
+            res = make_response()
+            res.data = css
+            res.mimetype = 'text/css'
+            return res
+
         # less support
-        if filename.startswith('css/') and filename.endswith('.less'):
+        elif filename.startswith('css/') and filename.endswith('.less'):
             less_file = path.join(static_path, filename)
             css = _compile_less(less_file)
             res = make_response()
@@ -335,7 +344,10 @@ def _compile_coffeescript(filename):
 def _compile_less(filename):
     return _node_command(['less', 'bin', 'lessc'], [filename])
 
-def _node_command(command, args):
+def _compile_stylus(filename):
+    return _node_command(['stylus', 'bin', 'stylus'], stdin=filename)
+
+def _node_command(command, args=[], stdin=None):
     '''
     convenience method to call node and additional node commands installed
     from npm such as coffeescript or less.
@@ -350,9 +362,14 @@ def _node_command(command, args):
         node_name = 'node-darwin'
     node = path.join(node_path, node_name)
     command = path.join(node_path, *command)
-    cmd_args = [node, command] + args
     output = tempfile.TemporaryFile()
-    subprocess.call(cmd_args, stdout=output)
+    cmd_args = [node, command] + args
+    if stdin is None:
+        subprocess.call(cmd_args, stdout=output)
+    else:
+        stdinfh = open(stdin, 'r')
+        subprocess.call(cmd_args, stdin=stdinfh, stdout=output)
+        stdinfh.close()
     output.seek(0)
     return output.read()
 
