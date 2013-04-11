@@ -22,7 +22,7 @@ import yaml
 from sdklib import (
     API_ENDPOINT, logger, node_path, routeless_path, skeleton_path
 )
-from sdklib import utils
+from sdklib.utils import file_data, upload_file
 
 
 def create(args):
@@ -251,14 +251,14 @@ def upload(args):
             for filename in files:
                 filepath = path.join(dn, filename)[len(key)+1:]
                 fullfilepath = path.join(dirname, filename)
-                payload[key][filepath] = utils.file_data(fullfilepath)
+                payload[key][filepath] = file_data(fullfilepath)
 
     payload['application_config'] = base64.b64encode(json.dumps(yaml_data))
     payload_json = json.dumps(payload)
 
     try:
         logger.info('Uploading')
-        res = utils.upload_file(yaml_data, payload_json)
+        res = upload_file(yaml_data, payload_json)
         logger.debug(
             'Response code: %s\n'
             'Response headers: %s\n'
