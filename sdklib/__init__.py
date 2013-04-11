@@ -3,6 +3,9 @@ import os
 import os.path
 import sys
 
+import markdown
+import pyjade
+
 
 path_name = os.path.dirname(sys.argv[0])
 root_path = os.path.abspath(path_name)
@@ -20,3 +23,7 @@ API_ENDPOINT = os.environ.get(
     'MARKUPHIVE_API_ENDPOINT', 
     'https://api.markuphive.com'
 )
+
+@pyjade.register_filter('markdown')
+def _filter_markdown(text, ast):
+    return markdown.markdown(text)
