@@ -22,7 +22,9 @@ import yaml
 from sdklib import (
     API_ENDPOINT, logger, node_path, routeless_path, skeleton_path
 )
-from sdklib.utils import compile_stylus, compile_less, compile_coffeescript, file_data, upload_file
+from sdklib.utils import (
+    compile_stylus, compile_less, compile_coffeescript, file_data, upload_file
+)
 
 
 def create(args):
@@ -200,6 +202,7 @@ def run_server(args):
         defaults = {}
         defaults['__sdk_template__'] = route['template']
         defaults['__sdk_content__'] = route.get('content', [])
+        defaults['__deployment__'] = 'sdk'
         if rule == 404:
             # 404
             app.register_error_handler(404, _dispatch_not_found(defaults))
