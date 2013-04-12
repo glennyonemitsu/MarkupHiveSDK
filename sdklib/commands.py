@@ -22,7 +22,7 @@ import yaml
 from sdklib import (
     API_ENDPOINT, logger, node_path, routeless_path, skeleton_path
 )
-from sdklib.utils import file_data, upload_file
+from sdklib.utils import compile_stylus, compile_less, compile_coffeescript, file_data, upload_file
 
 
 def create(args):
@@ -133,7 +133,7 @@ def run_server(args):
         # stylus support
         elif filename.startswith('css/') and filename.endswith('.styl'):
             stylus_file = path.join(static_path, filename)
-            css = _compile_stylus(stylus_file)
+            css = compile_stylus(stylus_file)
             res = make_response()
             res.data = css
             res.mimetype = 'text/css'
@@ -142,7 +142,7 @@ def run_server(args):
         # less support
         elif filename.startswith('css/') and filename.endswith('.less'):
             less_file = path.join(static_path, filename)
-            css = _compile_less(less_file)
+            css = compile_less(less_file)
             res = make_response()
             res.data = css
             res.mimetype = 'text/css'
@@ -151,7 +151,7 @@ def run_server(args):
         # coffeescript support
         elif filename.startswith('js/') and filename.endswith('.coffee'):
             cs_file = path.join(static_path, filename)
-            cs_data = _compile_coffeescript(cs_file)
+            cs_data = compile_coffeescript(cs_file)
             res = make_response()
             res.data = cs_data
             res.mimetype = 'application/javascript'

@@ -4,11 +4,12 @@ import hashlib
 import hmac
 import os.path
 import subprocess
+import sys
 import tempfile
 
 import requests
 
-from sdklib import API_ENDPOINT
+from sdklib import API_ENDPOINT, node_path
 
 
 
