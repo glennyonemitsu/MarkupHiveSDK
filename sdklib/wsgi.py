@@ -9,7 +9,7 @@ import json
 import os.path
 import sys
 
-from flask import Flask, make_response, request, send_from_directory
+from flask import Flask, abort, make_response, request, send_from_directory
 from jinja2 import Environment, FileSystemLoader
 from markdown import markdown
 import scss
@@ -122,11 +122,14 @@ class DynamicDispatcher(object):
             return template.render(**kwargs)
 
     def _dispatch_static(self, filename):
+        static_file = os.path.join(self.static_path, filename)
+        if not os.path.isfile(static_file):
+            return abort(404)
+
         # scss support
         if filename.startswith('css/') and filename.endswith('.scss'):
-            scss_file = os.path.join(self.static_path, filename)
             _scss = scss.Scss()
-            css = _scss.compile(scss_file=scss_file)
+            css = _scss.compile(scss_file=static_file)
             res = make_response()
             res.data = css
             res.mimetype = 'text/css'
@@ -134,8 +137,7 @@ class DynamicDispatcher(object):
 
         # stylus support
         elif filename.startswith('css/') and filename.endswith('.styl'):
-            stylus_file = os.path.join(self.static_path, filename)
-            css = compile_stylus(stylus_file)
+            css = compile_stylus(static_file)
             res = make_response()
             res.data = css
             res.mimetype = 'text/css'
@@ -143,8 +145,7 @@ class DynamicDispatcher(object):
 
         # less support
         elif filename.startswith('css/') and filename.endswith('.less'):
-            less_file = os.path.join(self.static_path, filename)
-            css = compile_less(less_file)
+            css = compile_less(static_file)
             res = make_response()
             res.data = css
             res.mimetype = 'text/css'
@@ -152,8 +153,7 @@ class DynamicDispatcher(object):
 
         # coffeescript support
         elif filename.startswith('js/') and filename.endswith('.coffee'):
-            cs_file = os.path.join(self.static_path, filename)
-            cs_data = compile_coffeescript(cs_file)
+            cs_data = compile_coffeescript(static_file)
             res = make_response()
             res.data = cs_data
             res.mimetype = 'application/javascript'
