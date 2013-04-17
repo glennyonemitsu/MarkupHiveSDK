@@ -115,10 +115,6 @@ class DynamicDispatcher(object):
             content = self._compile_defaults(kwargs['__sdk_content__'])
             for k in content:
                 kwargs.setdefault(k, content[k])
-            kwargs['REQ'] = request
-            kwargs['GET'] = request.args
-            kwargs['POST'] = request.form
-            kwargs['COOKIES'] = request.cookies
             return template.render(**kwargs)
 
     def _dispatch_static(self, filename):
