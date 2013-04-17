@@ -69,7 +69,7 @@ Scanner = None
 try:
     from _speedups import locate_blocks, Scanner, NoMoreTokens
 except ImportError:
-    print >>sys.stderr, "Scanning acceleration disabled (_speedups not found)!"
+    #print >>sys.stderr, "Scanning acceleration disabled (_speedups not found)!"
     pass
 
 ################################################################################
