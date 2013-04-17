@@ -15,6 +15,7 @@ import urllib2
 
 from flask import Flask, make_response, request, send_from_directory
 from jinja2 import Environment, FileSystemLoader
+from werkzeug.serving import run_simple
 import requests
 import scss
 import yaml
@@ -25,6 +26,7 @@ from sdklib import (
 from sdklib.utils import (
     compile_stylus, compile_less, compile_coffeescript, file_data, upload_file
 )
+from sdklib.wsgi import DynamicDispatcher
 
 
 def create(args):
@@ -70,158 +72,12 @@ def create(args):
 
 
 def run_server(args):
-    app_path = path.abspath(args.path)
-    yaml_path = path.join(app_path, 'app.yaml')
-    templates_path = path.join(app_path, 'templates')
-    static_path = path.join(app_path, 'static')
-    try:
-        logger.info('Loading %s' % yaml_path)
-        config = yaml.load(open(yaml_path, 'r').read())
-    except IOError:
-        logger.error('Error reading %s' % yaml_path)
-        sys.exit(2)
-
-    # if app.yaml wasn't touched, to preview something
-    if config is None or 'routes' not in config:
-        logger.info('No routes found in app.yaml, loading default welcome site')
-        yaml_path = path.join(routeless_path, 'app.yaml')
-        templates_path = path.join(routeless_path, 'templates')
-        static_path = path.join(routeless_path, 'static')
-        try:
-            config = yaml.load(open(yaml_path, 'r').read())
-        except IOError:
-            logger.error('Error reading %s for default welcome site' % yaml_path)
-            sys.exit(2)
-
-    jinja_env = Environment(
-        loader=FileSystemLoader(templates_path),
-        extensions=['pyjade.ext.jinja.PyJadeExtension']
-    )
-    def _dispatch_rule(**kwargs):
-        for k, v in kwargs.iteritems():
-            if isinstance(v, unicode):
-                kwargs[k] = str(v)
-        template_name = kwargs['__sdk_template__']
-
-        # markdown
-        if template_name.endswith('.md'):
-            template_name = path.join(templates_path, template_name)
-            with open(template_name, 'r') as th:
-                return markdown.markdown(th.read())
-
-        # everything else through jinja2
-        else:
-            template = jinja_env.get_template(template_name)
-            content = _compile_defaults(kwargs['__sdk_content__'], app_path)
-            for k in content:
-                kwargs.setdefault(k, content[k])
-            kwargs['REQ'] = request
-            kwargs['GET'] = request.args
-            kwargs['POST'] = request.form
-            kwargs['COOKIES'] = request.cookies
-            return template.render(**kwargs)
-
-    def _dispatch_static(filename):
-        # scss support
-        if filename.startswith('css/') and filename.endswith('.scss'):
-            scss_file = path.join(static_path, filename)
-            _scss = scss.Scss()
-            css = _scss.compile(scss_file=scss_file)
-            res = make_response()
-            res.data = css
-            res.mimetype = 'text/css'
-            return res
-
-        # stylus support
-        elif filename.startswith('css/') and filename.endswith('.styl'):
-            stylus_file = path.join(static_path, filename)
-            css = compile_stylus(stylus_file)
-            res = make_response()
-            res.data = css
-            res.mimetype = 'text/css'
-            return res
-
-        # less support
-        elif filename.startswith('css/') and filename.endswith('.less'):
-            less_file = path.join(static_path, filename)
-            css = compile_less(less_file)
-            res = make_response()
-            res.data = css
-            res.mimetype = 'text/css'
-            return res
-
-        # coffeescript support
-        elif filename.startswith('js/') and filename.endswith('.coffee'):
-            cs_file = path.join(static_path, filename)
-            cs_data = compile_coffeescript(cs_file)
-            res = make_response()
-            res.data = cs_data
-            res.mimetype = 'application/javascript'
-            return res
-
-        # everything else, straight served
-        else:
-            return send_from_directory(static_path, filename)
-
-    def _dispatch_favicon():
-        return _dispatch_static('favicon.ico')
-
-    def _dispatch_not_found(kwargs):
-        '''
-        creates the error handling function to assign to the flask object
-        with flask.register_error_handler
-        '''
-        def not_found_handler(error):
-            return _dispatch_rule(**kwargs), 404
-        return not_found_handler
-
-    def _compile_defaults(files, app_path):
-        '''creates the default content dict to send to the jade template'''
-        if not isinstance(files, list):
-            files = [files]
-        content = {}
-        for f in files:
-            try:
-                file_path = path.join(app_path, 'content', f)
-                file_type = file_path.split('.')[-1]
-                file_content = {}
-                with open(file_path, 'r') as fh:
-                    if file_type == 'json':
-                        file_content = json.load(fh)
-                    elif file_type == 'yaml':
-                        file_content = yaml.load(fh.read())
-            except:
-                logger.error('Error reading content file %s' % file_path)
-            content.update(file_content)    
-        return content
-
-    app = Flask(__name__)
-    i = 0
-    for route in config['routes']:
-        rule = route['rule']
-        defaults = {}
-        defaults['__sdk_template__'] = route['template']
-        defaults['__sdk_content__'] = route.get('content', [])
-        defaults['_deployment_'] = 'sdk'
-        if rule == 404:
-            # 404
-            app.register_error_handler(404, _dispatch_not_found(defaults))
-        else:
-            # adding rules with actual uri patterns
-            endpoint = 'dispatch_%s' % str(i)
-            app.add_url_rule(
-                rule,
-                endpoint,
-                _dispatch_rule,
-                defaults=defaults
-            )
-            i += 1
-    app.add_url_rule('/static/<path:filename>', 'static', _dispatch_static)
-    app.add_url_rule('/favicon.ico', 'favicon', _dispatch_favicon)
-
+    wsgi = DynamicDispatcher(args.path)
     host = ''.join(args.address.split(':')[:-1])
     port = int(args.address.split(':')[-1])
-    app.run(host=host, port=port, debug=True)
+    run_simple(hostname=host, port=port, application=wsgi, 
+               use_reloader=True,
+               use_debugger=True)
 
 
 def upload(args):
