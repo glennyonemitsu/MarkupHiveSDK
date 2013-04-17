@@ -23,8 +23,8 @@
 # Routing
 ####################
 # Routes are an array of mappings. The bare minimum of each mapping are the
-# "rule" and "script" keys. An optional "data" key should point to the 
-# file of the yaml or json data file in the data/ directory. If an array of
+# "rule" and "template" keys. An optional "content" key should point to the 
+# file of the yaml or json data file in the content/ directory. If an array of
 # files are given, it will load in sequence and each succeeding file will 
 # override any existing keys. You can mix data formats.
 
@@ -33,10 +33,10 @@
 #    template: home.jade
 #  - rule: /about-us/
 #    template: about-us.jade
-#    data: team.yaml
+#    content: team.yaml
 #  - rule: /portfolio/
 #    template: portfolio.jade
-#    data: [projects.json, clients.yaml]
+#    content: [projects.json, clients.yaml]
 
 # this rule will serve all 404 pages
 #  - rule: 404
