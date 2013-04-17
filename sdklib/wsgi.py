@@ -99,7 +99,13 @@ class DynamicDispatcher(object):
         for k, v in kwargs.iteritems():
             if isinstance(v, unicode):
                 kwargs[k] = str(v)
+
         template_name = kwargs['__sdk_template__']
+        content_files = kwargs['__sdk_content__']
+        # potentially these might be used in the templates. These are not 
+        # supplied in production so we will remove them and any others.
+        del kwargs['__sdk_template__']
+        del kwargs['__sdk_content__']
 
         # markdown never goes through jinja, so check and compile it straight
         # markdown also doesn't use template variables, so compile_defaults() 
@@ -112,7 +118,7 @@ class DynamicDispatcher(object):
         # everything else goes through jinja2
         else:
             template = self.jinja_env.get_template(template_name)
-            content = self._compile_defaults(kwargs['__sdk_content__'])
+            content = self._compile_defaults(content_files)
             for k in content:
                 kwargs.setdefault(k, content[k])
             return template.render(**kwargs)
