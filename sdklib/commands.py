@@ -108,9 +108,11 @@ def upload(args):
                 key = 'static'
             payload.setdefault(key, {})
             for filename in files:
-                filepath = path.join(dn, filename)[len(key)+1:]
-                fullfilepath = path.join(dirname, filename)
-                payload[key][filepath] = file_data(fullfilepath)
+                # skip all files starting with ".", "#", or "_"
+                if filename[0] not in '.#_':
+                    filepath = path.join(dn, filename)[len(key)+1:]
+                    fullfilepath = path.join(dirname, filename)
+                    payload[key][filepath] = file_data(fullfilepath)
 
     payload['application_config'] = base64.b64encode(json.dumps(yaml_data))
     payload_json = json.dumps(payload)
