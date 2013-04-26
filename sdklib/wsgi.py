@@ -181,7 +181,11 @@ class DynamicDispatcher(object):
         '''creates the default content dict to send to the jade template'''
         if not isinstance(files, list):
             files = [files]
-        content = {}
+        environ = request.environ
+        path = environ.get('PATH_INFO')
+        paths = path.strip('/').split('/')
+        content = {'_path_{i}'.format(i=i): v for i, v in enumerate(paths)}
+        content['_path'] = path
         for f in files:
             try:
                 file_path = os.path.join(self.content_path, f)
