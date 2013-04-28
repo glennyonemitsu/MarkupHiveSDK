@@ -47,21 +47,29 @@ def date_header():
 
 def upload_file(app_data, payload):
     name = app_data['application_name']
-    endpoint = '%s/v0/application/%s/' % (API_ENDPOINT, name)
-    access_key = app_data['api_access_key']
-    secret_key = app_data['api_secret_key']
-    api_verb = 'PUT'
-    api_content = payload
-    api_date = date_header()
-    api_uri = '/v0/application/%s/' % name
-    signature = api_signature(
-        api_verb, api_content, api_date, api_uri, secret_key
-    )
-    headers = {
-        'Date': api_date,
-        'X-Authentication': '%s:%s' % (access_key, signature)
-    }
-    res = requests.put(endpoint, data=payload, headers=headers)
+    uri = '/v0/application/{name}/'.format(name=name)
+    return api_call('PUT', uri, payload, app_data)
+
+
+def api_call(verb, uri, payload, app_config, api_endpoint=None):
+    '''
+    callable for all api calls
+
+    this handles all signature creation and date header preparation
+    '''
+    access_key = app_config['api_access_key']
+    secret_key = app_config['api_secret_key']
+
+    domain = api_endpoint if api_endpoint is not None else API_ENDPOINT
+    endpoint = '{domain}{endpoint}'.format(domain=domain, endpoint=uri)
+
+    date = date_header()
+    signature = api_signature(verb, payload, date, uri, secret_key)
+    auth_header = '{key}:{sign}'.format(key=access_key, sign=signature)
+    headers = {'Date': date, 'X-Authentication': auth_header}
+
+    requester = getattr(requests, verb.lower())
+    res = requester(endpoint, data=payload, headers=headers)
     return res
 
 
