@@ -22,10 +22,10 @@ import yaml
 
 from sdklib import API_ENDPOINT, logger, node_path, routeless_path, \
                    skeleton_path
-from sdklib.utils import compile_stylus, compile_less, compile_coffeescript, \
-                         file_data
+from sdklib.utils.general import compile_stylus, compile_less, \
+                                 compile_coffeescript, file_data
 from sdklib.wsgi import DynamicDispatcher
-from sdklib.api import application
+from sdklib.api import MarkupHive
 
 
 def create(args):
@@ -116,9 +116,11 @@ def upload(args):
     payload['application_config'] = base64.b64encode(json.dumps(yaml_data))
     payload_json = json.dumps(payload)
 
+    api = MarkupHive(yaml_data)
+
     try:
         logger.info('Uploading')
-        res = application.put_application(yaml_data, payload_json)
+        res = api.put_application(payload_json)
         logger.debug(
             'Response code: %s\n'
             'Response headers: %s\n'

@@ -17,7 +17,9 @@ import werkzeug
 import yaml
 
 from sdklib import logger, routeless_path
-from sdklib.utils import compile_stylus, compile_less, compile_coffeescript
+from sdklib.utils import cms
+from sdklib.utils.general import compile_stylus, compile_less, \
+                                 compile_coffeescript
 
 
 class DynamicDispatcher(object):
@@ -104,6 +106,9 @@ class DynamicDispatcher(object):
         # supplied in production so we will remove them and any others.
         del kwargs['__sdk_template__']
         del kwargs['__sdk_content__']
+
+        # CMS API helper functions
+        kwargs['cms_content_types'] = cms.content_types
 
         # markdown never goes through jinja, so check and compile it straight
         # markdown also doesn't use template variables, so compile_defaults() 
