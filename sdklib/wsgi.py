@@ -16,10 +16,8 @@ import scss
 import werkzeug
 import yaml
 
-from sdklib import API_ENDPOINT, logger, node_path, routeless_path, \
-                   skeleton_path
-from sdklib.utils import compile_stylus, compile_less, compile_coffeescript, \
-                         file_data, upload_file
+from sdklib import logger, routeless_path
+from sdklib.utils import compile_stylus, compile_less, compile_coffeescript
 
 
 class DynamicDispatcher(object):

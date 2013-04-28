@@ -20,13 +20,12 @@ import requests
 import scss
 import yaml
 
-from sdklib import (
-    API_ENDPOINT, logger, node_path, routeless_path, skeleton_path
-)
-from sdklib.utils import (
-    compile_stylus, compile_less, compile_coffeescript, file_data, upload_file
-)
+from sdklib import API_ENDPOINT, logger, node_path, routeless_path, \
+                   skeleton_path
+from sdklib.utils import compile_stylus, compile_less, compile_coffeescript, \
+                         file_data
 from sdklib.wsgi import DynamicDispatcher
+from sdklib.api import application
 
 
 def create(args):
@@ -119,7 +118,7 @@ def upload(args):
 
     try:
         logger.info('Uploading')
-        res = upload_file(yaml_data, payload_json)
+        res = application.put_application(yaml_data, payload_json)
         logger.debug(
             'Response code: %s\n'
             'Response headers: %s\n'
