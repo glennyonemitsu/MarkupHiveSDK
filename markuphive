@@ -28,6 +28,10 @@ server_parser.add_argument(
     '-p', '--path', 
     dest='path', metavar='PATH', default='.'
 )
+server_parser.add_argument(
+    '-d', '--debug', 
+    action='store_true', help='Debug output'
+)
 server_parser.set_defaults(callback=commands.run_server)
 
 upload_parser = sub_parsers.add_parser(
