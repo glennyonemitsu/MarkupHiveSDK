@@ -120,17 +120,7 @@ def upload(args):
 
     try:
         logger.info('Uploading')
-        res = api.put_application(payload_json)
-        logger.debug(
-            'Response code: %s\n'
-            'Response headers: %s\n'
-            'Response body: %s' % (res.status_code, res.headers, res.content)
-        )
-
-        try:
-            response_data = json.loads(res.content)
-        except:
-            response_data = {'success': True}
+        response_data = api.put_application(payload_json)
 
         if response_data['success']:
             logger.info(

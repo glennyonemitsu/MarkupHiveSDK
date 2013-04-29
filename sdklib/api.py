@@ -83,6 +83,11 @@ class MarkupHive(object):
 
             requester = getattr(requests, verb.lower())
             res = requester(endpoint, **request_args)
+            logger.debug(
+                'Response code: %s\n'
+                'Response headers: %s\n'
+                'Response body: %s' % (res.status_code, res.headers, res.content)
+            )
             data = json.loads(res.content)
             return data
         except Exception as e:
