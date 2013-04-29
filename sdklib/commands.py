@@ -130,10 +130,9 @@ def upload(args):
             )
         else:
             logger.info('Upload failed.')
-            if 'error-message' in response_data:
-                logger.info(
-                    'Error message: %s' % response_data['error-message']
-                )
+            if 'error' in response_data:
+                for error in response_data['error']:
+                    logger.info('Error message: {error}'.format(error=error))
     except urllib2.HTTPError, e:
         logger.error('API call returned a 404. Please check api '
                      'credentials in the app.yaml file.')
