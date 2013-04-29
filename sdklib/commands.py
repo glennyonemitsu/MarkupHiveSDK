@@ -121,6 +121,7 @@ def upload(args):
     try:
         logger.info('Uploading')
         response_data = api.put_application(payload_json)
+        logger.debug('API response data: {response}'.format(response=response_data))
 
         if response_data['success']:
             logger.info(
