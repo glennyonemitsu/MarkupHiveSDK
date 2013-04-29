@@ -1,5 +1,6 @@
 import base64
 import hashlib
+import json
 import os.path
 import subprocess
 import sys
@@ -63,4 +64,24 @@ def node_command(command, args=[], stdin=None):
     output.seek(0)
     return output.read()
 
+
+def json_parse(fn):
+    '''
+    Decorator to take string return value and parse it as JSON data
+    '''
+    def json_result(*args, **kwargs):
+        result = fn(*args, **kwargs)
+        return json.loads(result)
+    return json_result
+
+
+def api_parse(fn):
+    '''
+    Decorator to take web response object (from python requests lib) and parse
+    the content as a JSON string
+    '''
+    def json_result(*args, **kwargs):
+        result = fn(*args, **kwargs)
+        return json.loads(result.content)
+    return json_result
 

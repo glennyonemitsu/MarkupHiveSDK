@@ -5,10 +5,11 @@ import base64
 from datetime import datetime
 import hashlib
 import hmac
+import json
 
 import requests
 
-from sdklib import API_ENDPOINT
+from sdklib import API_ENDPOINT, logger
 from sdklib.utils.general import hash
 
 
@@ -23,17 +24,23 @@ def date_header():
     return header
 
 
-def uri(api_uri):
+def api(api_uri, default=None):
     '''
-    API class method wrapper to specify the API uri to use.
+    API class method wrapper to specify the API uri and default to use.
 
     The API class object holds state, specifically MarkupHive.api_uri that the
     method MarkupHive.(get|post|put|etc.) refers to upon call.
+
+    Default will usually be returned if an exception is raised, like from a 
+    JSON parsing attempt on a bad request.
     '''
     def decorator(fn):
         def wrapped_func(self, *args, **kwargs):
             self.api_uri = api_uri
-            return fn(self, *args, **kwargs)
+            try:
+                return fn(self, *args, **kwargs)
+            except:
+                return default
         return wrapped_func
     return decorator
 
@@ -54,23 +61,36 @@ class MarkupHive(object):
         this handles all signature creation and date header preparation
         '''
 
-        uri = self.api_uri.format(**uri_vars)
-        endpoint = '{domain}{endpoint}'.format(domain=self.domain, endpoint=uri)
+        try:
+            uri = self.api_uri.format(**uri_vars)
+            endpoint = '{domain}{endpoint}'.format(domain=self.domain, endpoint=uri)
 
+            # have to prepare just to get URI for signature creation
+            req = requests.Request(method=verb, url=endpoint, params=get_vars)
+            request = req.prepare()
+            uri = request.url[len(self.domain):]
 
-        date = date_header()
-        sign = self.signature(verb, payload, date, uri)
-        auth_header = '{key}:{sign}'.format(key=self.access_key, sign=sign)
-        headers = {'Date': date, 'X-Authentication': auth_header}
+            date = date_header()
+            sign = self.signature(verb, payload, date, uri)
+            auth_header = '{key}:{sign}'.format(key=self.access_key, sign=sign)
+            headers = {'Date': date, 'X-Authentication': auth_header}
 
-        requester = getattr(requests, verb.lower())
-        res = requester(endpoint, params=get_vars, data=payload, headers=headers)
-        return res
+            logger.debug('Sending API call to {uri} with GET variables {params}'.format(uri=endpoint, params=get_vars))
+            logger.debug('API call HTTP headers {headers}'.format(headers=headers))
+            request_args = {'params': get_vars, 'headers': headers}
+            if verb in ('POST', 'PUT'):
+                request_args['data'] = payload
+
+            requester = getattr(requests, verb.lower())
+            res = requester(endpoint, **request_args)
+            data = json.loads(res.content)
+            return data
+        except Exception as e:
+            logger.error('API call error: {e}'.format(e=e))
+            raise
 
     def signature(self, verb, content, date, uri):
-        content_hash = ''
-        if content != '':
-            content_hash = hash(content).hexdigest()
+        content_hash = hash(content).hexdigest()
         msg = '\n'.join([verb, content_hash, date, uri])
         signer = hmac.new(self.secret_key, msg, hashlib.sha1)
         signature = signer.digest()
@@ -83,11 +103,20 @@ class MarkupHive(object):
     def put(self, payload, uri_vars={}, get_vars={}):
         return self.call('PUT', payload, uri_vars, get_vars)
 
-    @uri('/v1/cms/content-types/')
+    @api('/v1/cms/content-types/', [])
     def get_cms_content_types(self):
         return self.get()
 
-    @uri('/v0/application/{name}/')
+    @api('/v1/cms/entries/', [])
+    def get_cms_entries(self, type_name, page, limit, timestamp, tags):
+        args = {'type_name': type_name, 
+                'page': page, 
+                'limit': limit, 
+                'timestamp': ','.join(timestamp), 
+                'tags': ','.join(tags)}
+        return self.get(get_vars=args)
+
+    @api('/v0/application/{name}/')
     def put_application(self, payload):
         return self.put(payload, dict(name=self.app_name))
 

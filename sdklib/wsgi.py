@@ -17,7 +17,8 @@ import werkzeug
 import yaml
 
 from sdklib import logger, routeless_path
-from sdklib.utils import cms
+from sdklib.api import MarkupHive
+from sdklib.utils.cms import CMSUtil
 from sdklib.utils.general import compile_stylus, compile_less, \
                                  compile_coffeescript
 
@@ -64,6 +65,16 @@ class DynamicDispatcher(object):
         if self.app_yaml is None or 'routes' not in self.app_yaml:
             self.load_app_yaml(routeless_path)
 
+        if self.app_yaml is None or \
+          'application_name' not in self.app_yaml or \
+          'api_access_key' not in self.app_yaml or \
+          'api_secret_key' not in self.app_yaml:
+            api = None
+        else:
+            api = MarkupHive(self.app_yaml)
+        cms = CMSUtil(api)
+
+
         self.setup_jinja()
 
         app = Flask(__name__)
@@ -73,7 +84,8 @@ class DynamicDispatcher(object):
             # hidden data we tack on to use when serving
             defaults = {'__sdk_template__': route['template'],
                         '__sdk_content__': route.get('content', []),
-                        '_deployment_': 'sdk'}
+                        '_deployment_': 'sdk',
+                        'cms': cms}
 
             # register special 404 rule
             if rule == 404:
@@ -106,9 +118,6 @@ class DynamicDispatcher(object):
         # supplied in production so we will remove them and any others.
         del kwargs['__sdk_template__']
         del kwargs['__sdk_content__']
-
-        # CMS API helper functions
-        kwargs['cms_content_types'] = cms.content_types
 
         # markdown never goes through jinja, so check and compile it straight
         # markdown also doesn't use template variables, so compile_defaults() 
