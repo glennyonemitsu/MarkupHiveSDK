@@ -39,7 +39,8 @@ def api(api_uri, default=None):
             self.api_uri = api_uri
             try:
                 return fn(self, *args, **kwargs)
-            except:
+            except Exception as e:
+                logger.error('API call error: {e}'.format(e=e))
                 return default
         return wrapped_func
     return decorator
@@ -117,8 +118,8 @@ class MarkupHive(object):
         args = {'type_name': type_name, 
                 'page': page, 
                 'limit': limit, 
-                'timestamp': ','.join(timestamp), 
-                'tags': ','.join(tags)}
+                'timestamp': ','.join([str(t) for t in timestamp]), 
+                'tags': ','.join([str(t) for t in tags])}
         return self.get(get_vars=args)
 
     @api('/v0/application/{name}/')
