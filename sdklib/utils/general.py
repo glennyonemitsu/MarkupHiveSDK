@@ -65,20 +65,11 @@ def node_command(command, args=[], stdin=None):
     return output.read()
 
 
-def json_parse(fn):
+def api_parse(default):
     '''
-    Decorator to take string return value and parse it as JSON data
-    '''
-    def json_result(*args, **kwargs):
-        result = fn(*args, **kwargs)
-        return json.loads(result)
-    return json_result
-
-
-def api_parse(fn):
-    '''
-    Decorator to take web response object (from python requests lib) and parse
-    the content as a JSON string
+    Decorator to take web response data (at this point it should already be 
+    parsed as a JSON string) and remove the 'success' and 'result' keys, 
+    returning the default parameter if 'success' if False
     '''
     def json_result(*args, **kwargs):
         result = fn(*args, **kwargs)

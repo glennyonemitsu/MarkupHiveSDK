@@ -24,15 +24,12 @@ def date_header():
     return header
 
 
-def api(api_uri, default=None):
+def api(api_uri):
     '''
-    API class method wrapper to specify the API uri and default to use.
+    API class method wrapper to specify the API uri to use.
 
     The API class object holds state, specifically MarkupHive.api_uri that the
     method MarkupHive.(get|post|put|etc.) refers to upon call.
-
-    Default will usually be returned if an exception is raised, like from a 
-    JSON parsing attempt on a bad request.
     '''
     def decorator(fn):
         def wrapped_func(self, *args, **kwargs):
@@ -41,10 +38,26 @@ def api(api_uri, default=None):
                 return fn(self, *args, **kwargs)
             except Exception as e:
                 logger.error('API call error: {e}'.format(e=e))
-                return default
+                raise
         return wrapped_func
     return decorator
 
+
+def default(default):
+    '''
+    API class method wrapper to specify the default value.
+
+    Default will usually be returned if an exception is raised, like from a 
+    JSON parsing attempt on a bad request.
+    '''
+    def decorator(fn):
+        def wrapped_func(*args, **kwargs):
+            try:
+                return fn(self, *args, **kwargs)
+            except Exception as e:
+                return {'success': False, 'result': default}
+        return wrapped_func
+    return decorator
 
 
 class MarkupHive(object):
@@ -109,11 +122,14 @@ class MarkupHive(object):
     def put(self, payload, uri_vars={}, get_vars={}):
         return self.call('PUT', payload, uri_vars, get_vars)
 
-    @api('/v1/cms/content-types/', [])
+    @default([])
+    @api('/v1/cms/content-types/')
     def get_cms_content_types(self):
         return self.get()
 
-    @api('/v1/cms/entries/', [])
+    @default({'entries':[], 'page_next': False, 'page_prev': False, 
+              'pages': 0, 'count': 0})
+    @api('/v1/cms/entries/')
     def get_cms_entries(self, type_name, page, limit, timestamp, tags):
         args = {'type_name': type_name, 
                 'page': page, 
@@ -122,6 +138,7 @@ class MarkupHive(object):
                 'tags': ','.join([str(t) for t in tags])}
         return self.get(get_vars=args)
 
+    @default('')
     @api('/v0/application/{name}/')
     def put_application(self, payload):
         return self.put(payload, dict(name=self.app_name))

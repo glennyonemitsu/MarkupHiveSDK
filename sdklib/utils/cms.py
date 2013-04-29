@@ -23,4 +23,5 @@ class CMSUtil(object):
         if self.api is None:
             return None
         else:
-            return getattr(self.api, method)(*args, **kwargs)
+            result = getattr(self.api, method)(*args, **kwargs)
+            return result['result']
