@@ -51,7 +51,7 @@ def default(default):
     JSON parsing attempt on a bad request.
     '''
     def decorator(fn):
-        def wrapped_func(*args, **kwargs):
+        def wrapped_func(self, *args, **kwargs):
             try:
                 return fn(self, *args, **kwargs)
             except Exception as e:
