@@ -138,6 +138,13 @@ class MarkupHive(object):
                 'tags': ','.join([str(t) for t in tags])}
         return self.get(get_vars=args)
 
+    @default({})
+    @api('/v1/cms/entry/')
+    def get_cms_entry(self, slug=None, uuid=None):
+        args = {'slug': slug,
+                'uuid': uuid}
+        return self.get(get_vars=args)
+
     @default('')
     @api('/v0/application/{name}/')
     def put_application(self, payload):
