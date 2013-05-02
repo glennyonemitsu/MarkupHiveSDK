@@ -198,6 +198,7 @@ class DynamicDispatcher(object):
         paths = path.strip('/').split('/')
         content = {'_path_{i}'.format(i=i): v for i, v in enumerate(paths)}
         content['_path'] = path
+        content['_get'] = request.args
         for f in files:
             try:
                 file_path = os.path.join(self.content_path, f)
