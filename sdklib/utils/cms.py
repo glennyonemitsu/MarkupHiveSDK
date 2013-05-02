@@ -20,11 +20,11 @@ class CMSUtil(object):
     def content_types(self):
         return self.call('get_cms_content_types')
 
-    def entries(self, type_name, page=0, limit=10, timestamp=[], tags=[]):
-        return self.call('get_cms_entries', type_name, page, limit, timestamp, tags)
+    def entries(self, type_name, page=0, limit=10, timestamp=[], tags=[], published=True):
+        return self.call('get_cms_entries', type_name, page, limit, timestamp, tags, published=published)
         
-    def entry(self, slug=None, uuid=None):
-        return self.call('get_cms_entry', slug=slug, uuid=uuid)
+    def entry(self, slug=None, uuid=None, published=True):
+        return self.call('get_cms_entry', slug=slug, uuid=uuid, published=published)
 
     def call(self, method, *args, **kwargs):
         if self.api is None:

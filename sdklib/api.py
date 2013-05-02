@@ -130,19 +130,23 @@ class MarkupHive(object):
     @default({'entries':[], 'page_next': False, 'page_prev': False, 
               'pages': 0, 'count': 0})
     @api('/v1/cms/entries/')
-    def get_cms_entries(self, type_name, page, limit, timestamp, tags):
+    def get_cms_entries(self, type_name, page, limit, timestamp, tags, published=True):
+        pub = 'false' if not published else 'true'
         args = {'type_name': type_name, 
                 'page': page, 
                 'limit': limit, 
                 'timestamp': ','.join([str(t) for t in timestamp]), 
-                'tags': ','.join([str(t) for t in tags])}
+                'tags': ','.join([str(t) for t in tags]),
+                'published': pub}
         return self.get(get_vars=args)
 
     @default({})
     @api('/v1/cms/entry/')
-    def get_cms_entry(self, slug=None, uuid=None):
+    def get_cms_entry(self, slug=None, uuid=None, published=True):
+        pub = 'false' if not published else 'true'
         args = {'slug': slug,
-                'uuid': uuid}
+                'uuid': uuid,
+                'published': pub}
         return self.get(get_vars=args)
 
     @default('')
