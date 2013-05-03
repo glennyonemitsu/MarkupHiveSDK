@@ -76,7 +76,6 @@ class DynamicDispatcher(object):
                 api = MarkupHive(self.app_yaml)
             cms = CMSUtil(api)
 
-
             self.setup_jinja()
 
             get = GetUtil(environ)
@@ -89,7 +88,6 @@ class DynamicDispatcher(object):
                 # hidden data we tack on to use when serving
                 defaults = {'__sdk_template__': route['template'],
                             '__sdk_content__': route.get('content', []),
-                            '_deployment_': 'sdk',
                             'deployment': 'sdk',
                             'cms': cms,
                             'get': get,
@@ -118,16 +116,10 @@ class DynamicDispatcher(object):
             logger.error('WSGI request dispatch exception: {e}'.format(e=e))
 
     def _dispatch_rule(self, **kwargs):
-        for k, v in kwargs.iteritems():
-            if isinstance(v, unicode):
-                kwargs[k] = str(v)
-
-        template_name = kwargs['__sdk_template__']
-        content_files = kwargs['__sdk_content__']
         # potentially these might be used in the templates. These are not 
         # supplied in production so we will remove them and any others.
-        del kwargs['__sdk_template__']
-        del kwargs['__sdk_content__']
+        template_name = kwargs.pop('__sdk_template__')
+        content_files = kwargs.pop('__sdk_content__')
 
         # markdown never goes through jinja, so check and compile it straight
         # markdown also doesn't use template variables, so compile_defaults() 
@@ -141,8 +133,7 @@ class DynamicDispatcher(object):
         else:
             template = self.jinja_env.get_template(template_name)
             content = self._compile_defaults(content_files)
-            for k in content:
-                kwargs.setdefault(k, content[k])
+            kwargs['content'] = content
             return template.render(**kwargs)
 
     def _dispatch_static(self, filename):
@@ -205,7 +196,6 @@ class DynamicDispatcher(object):
             files = [files]
 
         content = {}
-        #content['_get'] = request.args
         for f in files:
             try:
                 file_path = os.path.join(self.content_path, f)
