@@ -20,7 +20,8 @@ from sdklib import logger, routeless_path
 from sdklib.api import MarkupHive
 from sdklib.utils.cms import CMSUtil
 from sdklib.utils.general import compile_stylus, compile_less, \
-                                 compile_coffeescript
+                                 compile_coffeescript, PathUtil, \
+                                 GetUtil
 
 
 class DynamicDispatcher(object):
@@ -59,53 +60,62 @@ class DynamicDispatcher(object):
         )
         
     def __call__(self, environ, start_response):
-        self.load_app_yaml()
+        try:
+            self.load_app_yaml()
 
-        # if app.yaml has no routes use default welcome site
-        if self.app_yaml is None or 'routes' not in self.app_yaml:
-            self.load_app_yaml(routeless_path)
+            # if app.yaml has no routes use default welcome site
+            if self.app_yaml is None or 'routes' not in self.app_yaml:
+                self.load_app_yaml(routeless_path)
 
-        if self.app_yaml is None or \
-          'application_name' not in self.app_yaml or \
-          'api_access_key' not in self.app_yaml or \
-          'api_secret_key' not in self.app_yaml:
-            api = None
-        else:
-            api = MarkupHive(self.app_yaml)
-        cms = CMSUtil(api)
-
-
-        self.setup_jinja()
-
-        app = Flask(__name__)
-        i = 0
-        for route in self.app_yaml['routes']:
-            rule = route['rule']
-            # hidden data we tack on to use when serving
-            defaults = {'__sdk_template__': route['template'],
-                        '__sdk_content__': route.get('content', []),
-                        '_deployment_': 'sdk',
-                        'cms': cms}
-
-            # register special 404 rule
-            if rule == 404:
-                app.register_error_handler(404, self._dispatch_not_found(defaults))
-
-            # register regular rules with actual URI patterns
+            if self.app_yaml is None or \
+              'application_name' not in self.app_yaml or \
+              'api_access_key' not in self.app_yaml or \
+              'api_secret_key' not in self.app_yaml:
+                api = None
             else:
-                endpoint = 'dispatch_{index}'.format(index=i)
-                app.add_url_rule(rule,
-                                 endpoint, 
-                                 self._dispatch_rule,
-                                 defaults=defaults)
-                i += 1
-        app.add_url_rule('/static/<path:filename>', 
-                         'static', 
-                         self._dispatch_static)
-        app.add_url_rule('/favicon.ico', 
-                         'favicon', 
-                         self._dispatch_favicon)
-        return app.wsgi_app(environ, start_response)
+                api = MarkupHive(self.app_yaml)
+            cms = CMSUtil(api)
+
+
+            self.setup_jinja()
+
+            get = GetUtil(environ)
+            path = PathUtil(environ)
+
+            app = Flask(__name__)
+            i = 0
+            for route in self.app_yaml['routes']:
+                rule = route['rule']
+                # hidden data we tack on to use when serving
+                defaults = {'__sdk_template__': route['template'],
+                            '__sdk_content__': route.get('content', []),
+                            '_deployment_': 'sdk',
+                            'deployment': 'sdk',
+                            'cms': cms,
+                            'get': get,
+                            'path': path}
+
+                # register special 404 rule
+                if rule == 404:
+                    app.register_error_handler(404, self._dispatch_not_found(defaults))
+
+                # register regular rules with actual URI patterns
+                else:
+                    endpoint = 'dispatch_{index}'.format(index=i)
+                    app.add_url_rule(rule,
+                                     endpoint, 
+                                     self._dispatch_rule,
+                                     defaults=defaults)
+                    i += 1
+            app.add_url_rule('/static/<path:filename>', 
+                             'static', 
+                             self._dispatch_static)
+            app.add_url_rule('/favicon.ico', 
+                             'favicon', 
+                             self._dispatch_favicon)
+            return app.wsgi_app(environ, start_response)
+        except Exception as e:
+            logger.error('WSGI request dispatch exception: {e}'.format(e=e))
 
     def _dispatch_rule(self, **kwargs):
         for k, v in kwargs.iteritems():
@@ -193,12 +203,9 @@ class DynamicDispatcher(object):
         '''creates the default content dict to send to the jade template'''
         if not isinstance(files, list):
             files = [files]
-        environ = request.environ
-        path = environ.get('PATH_INFO')
-        paths = path.strip('/').split('/')
-        content = {'_path_{i}'.format(i=i): v for i, v in enumerate(paths)}
-        content['_path'] = path
-        content['_get'] = request.args
+
+        content = {}
+        #content['_get'] = request.args
         for f in files:
             try:
                 file_path = os.path.join(self.content_path, f)

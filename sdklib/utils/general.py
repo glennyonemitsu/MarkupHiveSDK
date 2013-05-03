@@ -6,6 +6,8 @@ import subprocess
 import sys
 import tempfile
 
+from werkzeug import Request
+
 from sdklib import node_path
 
 
@@ -76,3 +78,44 @@ def api_parse(default):
         return json.loads(result.content)
     return json_result
 
+
+class PathUtil(object):
+    '''
+    Used to get path names for use in templates.
+
+    Usage:
+    
+    path = PathUtil(wsgi.environ)
+    path() full path
+    path(n) n segment, 0 based index
+    '''
+
+    def __init__(self, environ):
+        path = environ.get('PATH_INFO')
+        self.path = path
+        self.paths = path.strip('/').split('/')
+
+    def __call__(self, index=None):
+        if index is None:
+            return self.path
+        elif len(self.paths) > index:
+            return self.paths[index]
+        else:
+            return ''
+
+
+class GetUtil(object):
+    '''
+    Used to query for GET variables
+    '''
+
+    def __init__(self, environ):
+        req = Request(environ)
+        self.args = req.args
+
+    def __call__(self, name):
+        return self.args.get(name, '')
+
+    def list(self, name):
+        return self.args.getlist(name)
+        
