@@ -100,13 +100,10 @@ class PathUtil(object):
     def __call__(self, index=None):
         if index is None:
             return self.path
-        elif type(index) is IntType:
-            if len(self.paths) > index:
-                return self.paths[index]
-            else:
-                return ''
+        elif type(index) is IntType and len(self.paths) > index:
+            return self.paths[index]
         elif type(index) is StringType:
-            return self.placeholders.get(index)
+            return self.placeholders.get(index, '')
         return ''
 
     def add_placeholders(self, placeholders):
