@@ -26,4 +26,4 @@ API_ENDPOINT = os.environ.get(
 
 @pyjade.register_filter('markdown')
 def _filter_markdown(text, ast):
-    return markdown.markdown(text)
+    return markdown.markdown(text, safe_mode='escape')

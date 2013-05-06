@@ -86,12 +86,16 @@ class DynamicDispatcher(object):
             for route in self.app_yaml['routes']:
                 rule = route['rule']
                 # hidden data we tack on to use when serving
-                defaults = {'__sdk_template__': route['template'],
-                            '__sdk_content__': route.get('content', []),
-                            'deployment': 'sdk',
-                            'cms': cms,
-                            'get': get,
-                            'path': path}
+                defaults = {
+                    '__sdk_template__': route['template'],
+                    '__sdk_content__': route.get('content', []),
+                    '__utils__': {
+                        'deployment': 'sdk',
+                        'cms': cms,
+                        'get': get,
+                        'path': path
+                    }
+                }
 
                 # register special 404 rule
                 if rule == 404:
@@ -115,12 +119,12 @@ class DynamicDispatcher(object):
         except Exception as e:
             logger.error('WSGI request dispatch exception: {e}'.format(e=e))
 
-    def _dispatch_rule(self, **kwargs):
+    def _dispatch_rule(self, *args, **kwargs):
         # potentially these might be used in the templates. These are not 
         # supplied in production so we will remove them and any others.
         template_name = kwargs.pop('__sdk_template__')
         content_files = kwargs.pop('__sdk_content__')
-
+        
         # markdown never goes through jinja, so check and compile it straight
         # markdown also doesn't use template variables, so compile_defaults() 
         # is skipped
@@ -133,8 +137,20 @@ class DynamicDispatcher(object):
         else:
             template = self.jinja_env.get_template(template_name)
             content = self._compile_defaults(content_files)
-            kwargs['content'] = content
-            return template.render(**kwargs)
+
+            utils = kwargs.pop('__utils__')
+            deployment = utils.get('deployment')
+            cms = utils.get('cms')
+            get = utils.get('get')
+            path = utils.get('path')
+            path.add_placeholders(kwargs)
+
+            context = { 'cms': cms,
+                        'content': content,
+                        'deployment': deployment,
+                        'get': get,
+                        'path': path}
+            return template.render(**context)
 
     def _dispatch_static(self, filename):
         static_file = os.path.join(self.static_path, filename)

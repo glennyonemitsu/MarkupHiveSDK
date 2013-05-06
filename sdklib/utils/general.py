@@ -5,6 +5,7 @@ import os.path
 import subprocess
 import sys
 import tempfile
+from types import IntType, StringType
 
 from werkzeug import Request
 
@@ -94,14 +95,24 @@ class PathUtil(object):
         path = environ.get('PATH_INFO')
         self.path = path
         self.paths = path.strip('/').split('/')
+        self.placeholders = {}
 
     def __call__(self, index=None):
         if index is None:
             return self.path
-        elif len(self.paths) > index:
-            return self.paths[index]
-        else:
-            return ''
+        elif type(index) is IntType:
+            if len(self.paths) > index:
+                return self.paths[index]
+            else:
+                return ''
+        elif type(index) is StringType:
+            return self.placeholders.get(index)
+        return ''
+
+    def add_placeholders(self, placeholders):
+        self.placeholders = {
+            k: v for k, v in placeholders.items() if not k.startswith('_')
+        }
 
 
 class GetUtil(object):
