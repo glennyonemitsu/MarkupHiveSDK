@@ -21,7 +21,7 @@ create_parser.set_defaults(callback=commands.create)
 
 server_parser = sub_parsers.add_parser('run_server', help='Run server')
 server_parser.add_argument(
-    '-a', '--address', 
+    '-b', '--bind', 
     dest='address', metavar='ADDRESS', default='0.0.0.0:9000'
 )
 server_parser.add_argument(
