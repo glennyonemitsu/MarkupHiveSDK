@@ -141,5 +141,5 @@ class StaticUtil(object):
         cache = '%10x' % random.randrange(256**5)
         if not path.startswith('/'):
             path = '/' + path
-        full_path = '/static{path}?t={cache}'.format(path=path, cache=cache)
+        full_path = '/static{path}?c={cache}'.format(path=path, cache=cache)
         return full_path
