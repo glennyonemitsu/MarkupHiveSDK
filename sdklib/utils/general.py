@@ -2,6 +2,7 @@ import base64
 import hashlib
 import json
 import os.path
+import random
 import subprocess
 import sys
 import tempfile
@@ -127,3 +128,18 @@ class GetUtil(object):
     def list(self, name):
         return self.args.getlist(name)
         
+
+class StaticUtil(object):
+    '''
+    Used to output the static file path with a cache controlling GET
+
+    Locally this always returns current timestamp for GET['t'].
+    Production should be unique per upload.
+    '''
+
+    def __call__(self, path):
+        cache = '%10x' % random.randrange(256**5)
+        if not path.startswith('/'):
+            path = '/' + path
+        full_path = '/static{path}?t={cache}'.format(path=path, cache=cache)
+        return full_path

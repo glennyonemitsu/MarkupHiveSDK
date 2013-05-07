@@ -21,7 +21,7 @@ from sdklib.api import MarkupHive
 from sdklib.utils.cms import CMSUtil
 from sdklib.utils.general import compile_stylus, compile_less, \
                                  compile_coffeescript, PathUtil, \
-                                 GetUtil
+                                 GetUtil, StaticUtil
 
 
 class DynamicDispatcher(object):
@@ -80,6 +80,7 @@ class DynamicDispatcher(object):
 
             get = GetUtil(environ)
             path = PathUtil(environ)
+            static = StaticUtil()
 
             app = Flask(__name__)
             i = 0
@@ -93,7 +94,8 @@ class DynamicDispatcher(object):
                         'deployment': 'sdk',
                         'cms': cms,
                         'get': get,
-                        'path': path
+                        'path': path,
+                        'static': static,
                     }
                 }
 
@@ -144,12 +146,14 @@ class DynamicDispatcher(object):
             get = utils.get('get')
             path = utils.get('path')
             path.add_placeholders(kwargs)
+            static = utils.get('static')
 
             context = { 'cms': cms,
                         'content': content,
                         'deployment': deployment,
                         'get': get,
-                        'path': path}
+                        'path': path,
+                        'static': static}
             return template.render(**context)
 
     def _dispatch_static(self, filename):
