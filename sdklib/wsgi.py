@@ -117,6 +117,9 @@ class DynamicDispatcher(object):
             app.add_url_rule('/favicon.ico', 
                              'favicon', 
                              self._dispatch_favicon)
+            app.add_url_rule('/robots.txt', 
+                             'robotstxt', 
+                             self._dispatch_robots)
             return app.wsgi_app(environ, start_response)
         except Exception as e:
             logger.error('WSGI request dispatch exception: {e}'.format(e=e))
@@ -198,8 +201,12 @@ class DynamicDispatcher(object):
         else:
             return send_from_directory(self.static_path, filename)
 
-    def _dispatch_favicon(self,):
+    def _dispatch_favicon(self):
         return self._dispatch_static('favicon.ico')
+
+    def _dispatch_robots(self):
+        '''How awesome would this be?'''
+        return self._dispatch_static('robots.txt')
 
     def _dispatch_not_found(self, kwargs):
         '''
