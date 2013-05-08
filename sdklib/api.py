@@ -142,9 +142,10 @@ class MarkupHive(object):
 
     @default({})
     @api('/v1/cms/entry/')
-    def get_cms_entry(self, slug=None, uuid=None, status='Published'):
+    def get_cms_entry(self, slug=None, uuid=None, timezone='UTC', status='Published'):
         args = {'slug': slug,
                 'uuid': uuid,
+                'timezone': timezone,
                 'status': status}
         return self.get(get_vars=args)
 

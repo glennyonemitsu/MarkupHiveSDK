@@ -23,8 +23,8 @@ class CMSUtil(object):
     def entries(self, type_name, page=0, limit=10, timestamp='', timezone='UTC', tags='', status='Published'):
         return self.call('get_cms_entries', type_name, page, limit, timestamp, timezone, tags, status=status)
         
-    def entry(self, slug=None, uuid=None, status='Published'):
-        return self.call('get_cms_entry', slug=slug, uuid=uuid, status=status)
+    def entry(self, slug=None, uuid=None, timezone='UTC', status='Published'):
+        return self.call('get_cms_entry', slug=slug, uuid=uuid, timezone=timezone, status=status)
 
     def call(self, method, *args, **kwargs):
         if self.api is None:
