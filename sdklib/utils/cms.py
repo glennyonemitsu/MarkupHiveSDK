@@ -20,8 +20,8 @@ class CMSUtil(object):
     def content_types(self):
         return self.call('get_cms_content_types')
 
-    def entries(self, type_name, page=0, limit=10, timestamp='', tags='', status='Published'):
-        return self.call('get_cms_entries', type_name, page, limit, timestamp, tags, status=status)
+    def entries(self, type_name, page=0, limit=10, timestamp='', timezone='UTC', tags='', status='Published'):
+        return self.call('get_cms_entries', type_name, page, limit, timestamp, timezone, tags, status=status)
         
     def entry(self, slug=None, uuid=None, status='Published'):
         return self.call('get_cms_entry', slug=slug, uuid=uuid, status=status)

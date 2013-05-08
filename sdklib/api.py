@@ -130,11 +130,12 @@ class MarkupHive(object):
     @default({'entries':[], 'page_next': False, 'page_prev': False, 
               'pages': 0, 'count': 0})
     @api('/v1/cms/entries/')
-    def get_cms_entries(self, type_name, page, limit, timestamp, tags, status='Published'):
+    def get_cms_entries(self, type_name, page, limit, timestamp, timezone, tags, status='Published'):
         args = {'type_name': type_name, 
                 'page': page, 
                 'limit': limit, 
                 'timestamp': timestamp,
+                'timezone': timezone,
                 'tags': tags,
                 'status': status}
         return self.get(get_vars=args)
