@@ -6,8 +6,9 @@ import random
 import subprocess
 import sys
 import tempfile
-from types import IntType, StringType
+from types import IntType, StringTypes
 
+import markdown as markdownlib
 from werkzeug import Request
 
 from sdklib import node_path
@@ -103,7 +104,7 @@ class PathUtil(object):
             return self.path
         elif type(index) is IntType and len(self.paths) > index:
             return self.paths[index]
-        elif type(index) is StringType:
+        elif type(index) in StringTypes:
             return self.placeholders.get(index, '')
         return ''
 
@@ -143,3 +144,12 @@ class StaticUtil(object):
             path = '/' + path
         full_path = '/static{path}?c={cache}'.format(path=path, cache=cache)
         return full_path
+
+
+def markdown(string=''):
+    '''safer markdown'''
+    try:
+        return markdownlib.markdown(string)
+    except:
+        return ''
+    

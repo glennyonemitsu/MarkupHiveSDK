@@ -11,7 +11,6 @@ import sys
 
 from flask import Flask, abort, make_response, request, send_from_directory
 from jinja2 import Environment, FileSystemLoader
-from markdown import markdown
 import scss
 import werkzeug
 import yaml
@@ -21,7 +20,7 @@ from sdklib.api import MarkupHive
 from sdklib.utils.cms import CMSUtil
 from sdklib.utils.general import compile_stylus, compile_less, \
                                  compile_coffeescript, PathUtil, \
-                                 GetUtil, StaticUtil
+                                 GetUtil, StaticUtil, markdown
 
 
 class DynamicDispatcher(object):
@@ -96,6 +95,7 @@ class DynamicDispatcher(object):
                         'get': get,
                         'path': path,
                         'static': static,
+                        'markdown': markdown,
                     }
                 }
 
@@ -150,12 +150,14 @@ class DynamicDispatcher(object):
             path = utils.get('path')
             path.add_placeholders(kwargs)
             static = utils.get('static')
+            markdown = utils.get('markdown')
 
             context = { 'cms': cms,
                         'content': content,
                         'deployment': deployment,
                         'get': get,
                         'path': path,
+                        'markdown': markdown,
                         'static': static}
             return template.render(**context)
 
