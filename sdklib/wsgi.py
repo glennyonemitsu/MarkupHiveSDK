@@ -5,14 +5,19 @@ This is the front facing WSGI app that dynamically creates a new flask app
 with dispatchers for every request. This ensures all files including the
 app.yaml file is loaded and recompiled.
 '''
+import glob
 import json
+import os
 import os.path
 import sys
+import threading
+import time
 
 from flask import Flask, abort, make_response, request, send_from_directory
 from jinja2 import Environment, FileSystemLoader
 import scss
 import werkzeug
+from werkzeug.serving import run_simple
 import yaml
 
 from sdklib import logger, routeless_path
@@ -25,8 +30,9 @@ from sdklib.utils.general import compile_stylus, compile_less, \
 
 class DynamicDispatcher(object):
 
-    def __init__(self, app_path):
+    def __init__(self, app_path, statics):
         self.app_path = os.path.abspath(app_path)
+        self.statics = statics
 
     def set_app_path(self, app_path):
         '''sets the root path to serve templates and files from'''
@@ -163,45 +169,26 @@ class DynamicDispatcher(object):
 
     def _dispatch_static(self, filename):
         static_file = os.path.join(self.static_path, filename)
-        if not os.path.isfile(static_file):
+
+        # special compiled files will be pre-compiled by the SourceWatcher
+        if filename.startswith('js/') or filename.startswith('css/'):
+
+            if static_file not in self.statics:
+                return abort(404)
+            else:
+                res = make_response()
+                res.data = self.statics[static_file]['data']
+                if filename.startswith('css/'):
+                    res.mimetype = 'text/css'
+                elif filename.startswith('js/'):
+                    res.mimetype = 'application/javascript'
+                return res
+
+        elif not os.path.isfile(static_file):
             return abort(404)
 
-        # scss support
-        if filename.startswith('css/') and filename.endswith('.scss'):
-            _scss = scss.Scss()
-            css = _scss.compile(scss_file=static_file)
-            res = make_response()
-            res.data = css
-            res.mimetype = 'text/css'
-            return res
-
-        # stylus support
-        elif filename.startswith('css/') and filename.endswith('.styl'):
-            css = compile_stylus(static_file)
-            res = make_response()
-            res.data = css
-            res.mimetype = 'text/css'
-            return res
-
-        # less support
-        elif filename.startswith('css/') and filename.endswith('.less'):
-            css = compile_less(static_file)
-            res = make_response()
-            res.data = css
-            res.mimetype = 'text/css'
-            return res
-
-        # coffeescript support
-        elif filename.startswith('js/') and filename.endswith('.coffee'):
-            cs_data = compile_coffeescript(static_file)
-            res = make_response()
-            res.data = cs_data
-            res.mimetype = 'application/javascript'
-            return res
-
-        # everything else, straight served
         else:
-            return send_from_directory(self.static_path, filename)
+            return send_from_directory(static_file)
 
     def _dispatch_favicon(self):
         return self._dispatch_static('favicon.ico')
@@ -241,3 +228,92 @@ class DynamicDispatcher(object):
             content.update(file_content)    
         return content
 
+
+class LocalServer(object):
+
+    def __init__(self, args, statics):
+        self.wsgi = DynamicDispatcher(args.path, statics)
+        self.args = args
+        self.statics = statics
+
+    def __call__(self):
+        logger.info('Running local server')
+        host = ''.join(self.args.address.split(':')[:-1])
+        port = int(self.args.address.split(':')[-1])
+        run_simple(hostname=host, 
+                   port=port, 
+                   application=self.wsgi, 
+                   use_debugger=True)
+
+
+class SourceWatcher(object):
+
+    def __init__(self, args, statics):
+        self.args = args
+        self.path = args.path
+        self.statics = statics
+
+    def __call__(self):
+        
+        logger.info('Running source code watcher')
+        while True:
+            app_path = os.path.abspath(self.path)
+            
+            css_path = os.path.join(app_path, 'static', 'css')
+            js_path = os.path.join(app_path, 'static', 'js')
+
+            static_files = [f for f in glob.glob(css_path + '/*') if os.path.isfile(f)]
+            static_files += [f for f in glob.glob(css_path + '/**/*') if os.path.isfile(f)]
+            static_files += [f for f in glob.glob(js_path + '/*') if os.path.isfile(f)]
+            static_files += [f for f in glob.glob(js_path + '/**/*') if os.path.isfile(f)]
+
+            for f in static_files:
+                try:
+                    mtime = os.path.getmtime(f)
+                    if f not in self.statics or mtime > self.statics[f]['mtime']:
+                        if f.startswith(css_path):
+                            data = self.process_css(f)
+                        elif f.startswith(js_path):
+                            data = self.process_js(f)
+                        self.statics[f] = {'mtime': mtime, 'data': data}
+                        if mtime > self.statics[f]['mtime']:
+                            logger.debug('Found new file update for: {0}'.format(f))
+                except OSError as e:
+                    # ignoring OS Errors since it could be an editor creating 
+                    # scratch files momentarily
+                    pass
+
+            time.sleep(1.0)
+
+    def process_css(self, filename):
+
+        # regular css
+        if filename.endswith('.css'):
+            css = open(filename).read()
+
+        # scss support
+        if filename.endswith('.scss'):
+            _scss = scss.Scss()
+            css = _scss.compile(scss_file=filename)
+
+        # stylus support
+        elif filename.endswith('.styl'):
+            css = compile_stylus(filename)
+
+        # less support
+        elif filename.endswith('.less'):
+            css = compile_less(filename)
+
+        return css
+
+    def process_js(self, filename):
+
+        # regular javascript
+        if filename.endswith('.js'):
+            js = open(filename).read()
+
+        # coffeescript support
+        elif filename.endswith('.coffee'):
+            js = compile_coffeescript(filename)
+
+        return js
