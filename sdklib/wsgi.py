@@ -271,13 +271,13 @@ class SourceWatcher(object):
                 try:
                     mtime = os.path.getmtime(f)
                     if f not in self.statics or mtime > self.statics[f]['mtime']:
+                        if f in self.statics and mtime > self.statics[f]['mtime']:
+                            logger.debug('Found new file update for: {0}'.format(f))
                         if f.startswith(css_path):
                             data = self.process_css(f)
                         elif f.startswith(js_path):
                             data = self.process_js(f)
                         self.statics[f] = {'mtime': mtime, 'data': data}
-                        if mtime > self.statics[f]['mtime']:
-                            logger.debug('Found new file update for: {0}'.format(f))
                 except OSError as e:
                     # ignoring OS Errors since it could be an editor creating 
                     # scratch files momentarily
